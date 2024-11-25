@@ -1,25 +1,29 @@
 package com.vornicu.book.book;
 
 
+import com.vornicu.book.common.BaseEntity;
+import com.vornicu.book.feedback.Feedback;
+import com.vornicu.book.history.BookTransactionHistory;
+import com.vornicu.book.user.User;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
+import java.util.List;
 
-import java.time.LocalDateTime;
-
-
+@Getter
+@Setter
+@SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
-public class Book {
 
-    @Id
-    @GeneratedValue
-    private Integer id;
+public class Book extends BaseEntity {
+
+
     private String title;
     private String authorName;
     private String isbn;
@@ -28,17 +32,30 @@ public class Book {
     private boolean archived;
     private boolean shareable;
 
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User owner;
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdDate;
-    @LastModifiedDate
-    @Column(insertable = false)
-    private LocalDateTime lastModifiedDate;
-    @CreatedBy
-    @Column(nullable = false, updatable = false)
-    private Integer createdBy;
-    @LastModifiedBy
-    @Column(insertable = false)
-    private Integer lastModifiedBy;
+    @OneToMany(mappedBy = "book")
+    private List<Feedback> feedbacks;
+
+
+    @OneToMany(mappedBy = "book")
+    private List<BookTransactionHistory> histories;
+
+    @Transient
+    public double getRate(){
+        if(feedbacks == null || feedbacks.isEmpty()){
+            return 0.0;
+        }
+        var rate = this.feedbacks.stream()
+                .mapToDouble(Feedback::getNote)
+                .average()
+                .orElse(0.0);
+
+        double roundedRate = Math.round(rate*10.0) /10.0;
+        return roundedRate;
+    }
+
+
 }
