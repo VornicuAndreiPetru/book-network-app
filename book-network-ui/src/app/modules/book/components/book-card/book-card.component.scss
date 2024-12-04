@@ -1,0 +1,17 @@
+div{
+  &.card{
+    max-height: 450px;
+    min-height: 450px;
+  }
+}
+
+.overflow-y-only {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 300px;
+}
+
+
+i{
+  cursor: pointer;
+}
